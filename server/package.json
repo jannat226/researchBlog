@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "build": "cd ../client && npm install && npm run build"
-  }
-  ,
+  },
   "keywords": ["blog", "express", "mongodb"],
   "author": "",
   "license": "ISC",
