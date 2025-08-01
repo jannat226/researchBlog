@@ -306,7 +306,7 @@ const BlogCard = ({ blog }) => {
   return (
     <Link to={`/blogs/${blog._id}`} className="blog-card-link">
       <article className="blog-card">
-        {blog.image && (
+        {blog.image && blog.image !== "optional-image-url" && (
           <div className="blog-card-image-container">
             <img
               src={blog.image}

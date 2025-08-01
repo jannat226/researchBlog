@@ -181,7 +181,7 @@ const BlogDetail = () => {
 
       {/* Blog Content */}
       <article className="blog-article">
-        {blog.image && (
+        {blog.image && blog.image !== "optional-image-url" && (
           <div className="blog-image-container">
             <img src={blog.image} alt={blog.title} className="blog-image" />
           </div>

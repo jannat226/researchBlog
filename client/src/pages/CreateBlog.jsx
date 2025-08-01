@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../App";
 import axios from "axios";
+
+const api = import.meta.env.VITE_API_URL;
 import {
   PenTool,
   Image as ImageIcon,
@@ -91,7 +93,7 @@ const CreateBlog = () => {
         };
       }
 
-      const response = await axios.post("/api/blogs", dataToSend, config);
+      const response = await axios.post(`${api}/api/blogs`, dataToSend, config);
       navigate(`/blogs/${response.data._id}`);
     } catch (err) {
       setError(
