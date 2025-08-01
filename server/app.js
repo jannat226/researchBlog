@@ -25,11 +25,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images statically
-const path = require("path");
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+// Catch-all: send back React's index.html for any non-API route
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+});
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Serve static files from React build
-app.use(express.static(path.join(__dirname, '../client/dist')));
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // Auth routes
 app.use("/api/auth", authRoutes);
@@ -46,8 +52,8 @@ app.get("/", (req, res) => {
 });
 
 // Catch-all: send back React's index.html for any non-API route
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
 // Health check route
