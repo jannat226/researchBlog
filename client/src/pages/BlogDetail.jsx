@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../App";
 import axios from "axios";
+
+const api = import.meta.env.VITE_API_URL;
 import {
   ArrowLeft,
   Calendar,
@@ -30,7 +32,7 @@ const BlogDetail = () => {
   const fetchBlog = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/blogs/${id}`);
+      const response = await axios.get(`${api}/api/blogs/${id}`);
       setBlog(response.data);
       setError("");
     } catch (err) {
@@ -56,7 +58,7 @@ const BlogDetail = () => {
 
     try {
       setDeleteLoading(true);
-      await axios.delete(`/api/blogs/${id}`);
+      await axios.delete(`${api}/api/blogs/${id}`);
       navigate("/blogs");
     } catch (err) {
       alert("Failed to delete blog post. Please try again.");
