@@ -27,6 +27,16 @@ const Register = () => {
     if (error) setError("");
   };
 
+  // Live password match check
+  const passwordsMatch = formData.password === formData.confirmPassword;
+  const canSubmit =
+    formData.username &&
+    formData.email &&
+    formData.password &&
+    formData.confirmPassword &&
+    passwordsMatch &&
+    !loading;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -78,6 +88,15 @@ const Register = () => {
           {success && <div className="alert alert-success">{success}</div>}
 
           <form onSubmit={handleSubmit}>
+            {/* Live password match feedback */}
+            {formData.confirmPassword && !passwordsMatch && (
+              <div
+                className="alert alert-warning"
+                style={{ marginBottom: "1rem" }}
+              >
+                Passwords do not match
+              </div>
+            )}
             <div className="form-group">
               <label htmlFor="username" className="form-label">
                 <User size={16} />
@@ -174,7 +193,7 @@ const Register = () => {
             <button
               type="submit"
               className="btn btn-primary w-full"
-              disabled={loading}
+              disabled={!canSubmit}
             >
               {loading ? (
                 <>
