@@ -3,10 +3,10 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
-// Import auth and blog routes
-const authRoutes = require("./routes/auth");
-const blogRoutes = require("./routes/blog");
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  })
 
 const app = express();
 
