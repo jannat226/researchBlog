@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../App";
 import axios from "axios";
+
+const api = import.meta.env.VITE_API_URL;
 import { LogIn, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
@@ -30,7 +32,7 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post("/api/auth/login", formData);
+      const response = await axios.post(`${api}/api/auth/login`, formData);
       login(response.data.user, response.data.token);
     } catch (err) {
       setError(

@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../App";
 import axios from "axios";
+
+const api = import.meta.env.VITE_API_URL;
 import {
   BookOpen,
   Calendar,
@@ -38,7 +40,7 @@ const BlogList = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/blogs");
+      const response = await axios.get(`${api}/api/blogs`);
       setBlogs(response.data);
       setError("");
     } catch (err) {

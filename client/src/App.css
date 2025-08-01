@@ -179,6 +179,7 @@ body {
   font-size: 1rem;
   transition: all 0.3s ease;
   background: white;
+  color: #2d3748;
 }
 
 .form-input:focus {
