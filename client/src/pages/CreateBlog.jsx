@@ -1,5 +1,5 @@
 // client/src/pages/CreateBlog.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../App";
 import axios from "axios";
@@ -17,18 +17,43 @@ const CreateBlog = () => {
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    image: "",
+    imageUrl: "",
+    imageFile: null,
   });
+  const [imageInputType, setImageInputType] = useState("url"); // 'url' or 'upload'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
 
+  // Cleanup URL.createObjectURL on unmount or file change
+  useEffect(() => {
+    return () => {
+      if (formData.imageFile) {
+        URL.revokeObjectURL(URL.createObjectURL(formData.imageFile));
+      }
+    };
+  }, [formData.imageFile]);
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    // Clear error when user starts typing
+    const { name, value, files } = e.target;
+    if (name === "imageFile") {
+      setFormData((prev) => {
+        // Revoke previous object URL
+        if (prev.imageFile)
+          URL.revokeObjectURL(URL.createObjectURL(prev.imageFile));
+        return {
+          ...prev,
+          imageFile: files[0],
+          imageUrl: "",
+        };
+      });
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        ...(name === "imageUrl" ? { imageFile: null } : {}),
+      }));
+    }
     if (error) setError("");
   };
 
@@ -37,8 +62,36 @@ const CreateBlog = () => {
     setLoading(true);
     setError("");
 
+    if (!formData.title.trim() || !formData.content.trim()) {
+      setError("Title and content are required.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await axios.post("/api/blogs", formData);
+      let dataToSend;
+      const config = {};
+
+      if (imageInputType === "upload" && formData.imageFile) {
+        dataToSend = new FormData();
+        dataToSend.append("title", formData.title);
+        dataToSend.append("content", formData.content);
+        dataToSend.append("image", formData.imageFile);
+        config.headers = { "Content-Type": "multipart/form-data" };
+      } else if (imageInputType === "url" && formData.imageUrl) {
+        dataToSend = {
+          title: formData.title,
+          content: formData.content,
+          image: formData.imageUrl,
+        };
+      } else {
+        dataToSend = {
+          title: formData.title,
+          content: formData.content,
+        };
+      }
+
+      const response = await axios.post("/api/blogs", dataToSend, config);
       navigate(`/blogs/${response.data._id}`);
     } catch (err) {
       setError(
@@ -100,6 +153,7 @@ const CreateBlog = () => {
             {error && <div className="alert alert-error">{error}</div>}
 
             <form onSubmit={handleSubmit}>
+              {/* Title Field */}
               <div className="form-group">
                 <label htmlFor="title" className="form-label">
                   Blog Title
@@ -113,36 +167,89 @@ const CreateBlog = () => {
                   className="form-input"
                   placeholder="Enter an engaging title for your blog..."
                   required
+                  style={{ color: "#2d3748", background: "white" }}
                 />
               </div>
 
+              {/* Image Input Type Selector */}
               <div className="form-group">
-                <label htmlFor="image" className="form-label">
-                  <ImageIcon size={16} />
-                  Cover Image URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  id="image"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleChange}
-                  className="form-input"
-                  placeholder="https://example.com/image.jpg"
-                />
-                {formData.image && (
-                  <div className="image-preview">
-                    <img
-                      src={formData.image}
-                      alt="Cover preview"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
+                <label className="form-label">Cover Image</label>
+                <div
+                  className="radio-group"
+                  style={{ marginBottom: "1rem", display: "flex", gap: "1rem" }}
+                >
+                  <label>
+                    <input
+                      type="radio"
+                      name="imageInputType"
+                      value="url"
+                      checked={imageInputType === "url"}
+                      onChange={() => setImageInputType("url")}
                     />
-                  </div>
+                    Image URL
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="imageInputType"
+                      value="upload"
+                      checked={imageInputType === "upload"}
+                      onChange={() => setImageInputType("upload")}
+                    />
+                    Upload Image
+                  </label>
+                </div>
+
+                {/* Image URL Input */}
+                {imageInputType === "url" && (
+                  <>
+                    <input
+                      type="url"
+                      id="imageUrl"
+                      name="imageUrl"
+                      value={formData.imageUrl}
+                      onChange={handleChange}
+                      className="form-input"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                    {formData.imageUrl && (
+                      <div className="image-preview">
+                        <img
+                          src={formData.imageUrl}
+                          alt="Cover preview"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Image File Upload */}
+                {imageInputType === "upload" && (
+                  <>
+                    <input
+                      type="file"
+                      id="imageFile"
+                      name="imageFile"
+                      accept="image/*"
+                      onChange={handleChange}
+                      className="form-input"
+                    />
+                    {formData.imageFile && (
+                      <div className="image-preview">
+                        <img
+                          src={URL.createObjectURL(formData.imageFile)}
+                          alt="Cover preview"
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
+              {/* Content Field */}
               <div className="form-group">
                 <label htmlFor="content" className="form-label">
                   Blog Content
@@ -162,6 +269,7 @@ const CreateBlog = () => {
                 </div>
               </div>
 
+              {/* Submit Button */}
               <div className="form-actions">
                 <button
                   type="submit"
@@ -194,23 +302,26 @@ const CreateBlog = () => {
               <h2>Preview</h2>
               <p>This is how your blog will appear to readers</p>
             </div>
-
             <article className="blog-preview">
-              {formData.image && (
+              {(imageInputType === "url" && formData.imageUrl) ||
+              (imageInputType === "upload" && formData.imageFile) ? (
                 <div className="preview-image-container">
                   <img
-                    src={formData.image}
-                    alt={formData.title}
+                    src={
+                      imageInputType === "url"
+                        ? formData.imageUrl
+                        : URL.createObjectURL(formData.imageFile)
+                    }
+                    alt={formData.title || "Blog cover"}
                     className="preview-image"
                   />
                 </div>
-              )}
+              ) : null}
 
               <div className="preview-content">
                 <h1 className="preview-title">
                   {formData.title || "Your Blog Title"}
                 </h1>
-
                 <div className="preview-meta">
                   <div className="preview-author">By {user.username}</div>
                   <div className="preview-date">
@@ -221,12 +332,13 @@ const CreateBlog = () => {
                     })}
                   </div>
                 </div>
-
                 <div className="preview-text">
                   {formData.content ? (
                     formData.content
                       .split("\n")
-                      .map((paragraph, index) => <p key={index}>{paragraph}</p>)
+                      .map((paragraph, index) => (
+                        <p key={index}>{paragraph.trim()}</p>
+                      ))
                   ) : (
                     <p className="placeholder-text">
                       Your blog content will appear here...
@@ -245,7 +357,6 @@ const CreateBlog = () => {
           margin: 0 auto;
           padding: 0 1rem;
         }
-
         .create-blog-header {
           display: flex;
           justify-content: space-between;
@@ -254,12 +365,10 @@ const CreateBlog = () => {
           flex-wrap: wrap;
           gap: 1rem;
         }
-
         .header-actions {
           display: flex;
           gap: 1rem;
         }
-
         .create-blog-icon {
           width: 64px;
           height: 64px;
@@ -272,27 +381,23 @@ const CreateBlog = () => {
           margin: 0 auto 1rem;
           box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
-
         .image-preview {
           margin-top: 1rem;
           border-radius: 12px;
           overflow: hidden;
           max-height: 200px;
         }
-
         .image-preview img {
           width: 100%;
           height: 200px;
           object-fit: cover;
         }
-
         .character-count {
           font-size: 0.8rem;
           color: #718096;
           text-align: right;
           margin-top: 0.5rem;
         }
-
         .form-actions {
           display: flex;
           justify-content: flex-end;
@@ -301,7 +406,6 @@ const CreateBlog = () => {
           padding-top: 2rem;
           border-top: 1px solid #e5e7eb;
         }
-
         .loading-spinner-sm {
           width: 20px;
           height: 20px;
@@ -318,38 +422,31 @@ const CreateBlog = () => {
           padding-bottom: 1rem;
           border-bottom: 1px solid #e5e7eb;
         }
-
         .preview-header h2 {
           color: #2d3748;
           margin-bottom: 0.5rem;
         }
-
         .preview-header p {
           color: #718096;
           margin: 0;
         }
-
         .blog-preview {
           max-width: none;
         }
-
         .preview-image-container {
           margin-bottom: 2rem;
           border-radius: 16px;
           overflow: hidden;
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-
         .preview-image {
           width: 100%;
           height: 300px;
           object-fit: cover;
         }
-
         .preview-content {
           padding: 0;
         }
-
         .preview-title {
           font-size: 2.5rem;
           font-weight: 700;
@@ -357,7 +454,6 @@ const CreateBlog = () => {
           line-height: 1.2;
           margin-bottom: 1.5rem;
         }
-
         .preview-meta {
           display: flex;
           justify-content: space-between;
@@ -368,25 +464,27 @@ const CreateBlog = () => {
           font-size: 0.9rem;
           color: #718096;
         }
-
         .preview-author {
           font-weight: 600;
           color: #667eea;
         }
-
         .preview-text {
           font-size: 1.1rem;
           line-height: 1.8;
           color: #2d3748;
         }
-
         .preview-text p {
           margin-bottom: 1.5rem;
         }
-
         .placeholder-text {
           color: #a0aec0;
           font-style: italic;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         @media (max-width: 768px) {
@@ -394,19 +492,15 @@ const CreateBlog = () => {
             flex-direction: column;
             align-items: stretch;
           }
-
           .header-actions {
             justify-content: center;
           }
-
           .form-actions {
             justify-content: center;
           }
-
           .preview-title {
             font-size: 2rem;
           }
-
           .preview-meta {
             flex-direction: column;
             gap: 0.5rem;

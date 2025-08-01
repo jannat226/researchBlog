@@ -4,8 +4,14 @@ const Blog = require("../models/Blog");
 // Create a new blog post
 exports.createBlog = async (req, res) => {
   try {
-    const { title, content, image } = req.body;
+    const { title, content } = req.body;
     const author = req.user.id;
+    let image = "";
+    if (req.file) {
+      image = `/uploads/${req.file.filename}`;
+    } else if (req.body.image) {
+      image = req.body.image;
+    }
     const blog = new Blog({ title, content, image, author });
     await blog.save();
     res.status(201).json(blog);

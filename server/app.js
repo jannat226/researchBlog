@@ -11,7 +11,6 @@ const blogRoutes = require("./routes/blog");
 const app = express();
 
 // Enhanced CORS configuration
-
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -20,6 +19,10 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded images statically
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Auth routes
 app.use("/api/auth", authRoutes);

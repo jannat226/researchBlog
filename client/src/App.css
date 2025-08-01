@@ -4,6 +4,15 @@
   padding: 0;
   box-sizing: border-box;
 }
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+}
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -12,32 +21,39 @@ body {
   color: #1a202c;
   margin: 0;
   padding: 0;
+  width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .App {
   min-height: 100vh;
-  /* Remove the background from App - let individual pages handle their backgrounds */
+  width: 100vw;
 }
 
 .main-content {
-  min-height: calc(100vh - 80px);
-  /* Remove padding and max-width to allow full-width backgrounds */
+  min-height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
 }
 
 /* Login and Register specific backgrounds */
 .login-container,
 .register-container {
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
+  width: 100vw;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 2rem 0;
 }
 
 /* Home page background */
 .home-container {
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
+  width: 100vw;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
@@ -45,22 +61,33 @@ body {
 .blog-list-container,
 .blog-detail-container,
 .create-blog-container {
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
+  width: 100vw;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem;
+  padding: 2rem 0;
 }
 
 .blog-list-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  width: 100vw;
+  max-width: none;
+  margin: 0;
+  padding: 2rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
 }
 
 .blog-detail-container,
 .create-blog-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  width: 100vw;
+  max-width: none;
+  margin: 0;
+  padding: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Loading Styles */
@@ -288,6 +315,11 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  flex: 1 1 350px;
+  min-width: 320px;
+   max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .blog-card:hover {
@@ -332,7 +364,7 @@ body {
 .blog-card-author {
   font-weight: 600;
   color: #667eea;
-}
+} */
 
 /* Alert Styles */
 .alert {
