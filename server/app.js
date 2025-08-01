@@ -4,6 +4,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
+const path = require("path");
+
 // Import auth and blog routes
 const authRoutes = require("./routes/auth");
 const blogRoutes = require("./routes/blog");
@@ -25,17 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images statically
-// Serve static files from React build
-app.use(express.static(path.join(__dirname, "../client/dist")));
-
-// Catch-all: send back React's index.html for any non-API route
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-});
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// Serve static files from React build
-app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // Auth routes
 app.use("/api/auth", authRoutes);
@@ -50,6 +42,9 @@ app.get("/", (req, res) => {
     endpoints: ["POST /api/auth/register", "POST /api/auth/login"],
   });
 });
+
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // Catch-all: send back React's index.html for any non-API route
 app.get("*", (req, res) => {
