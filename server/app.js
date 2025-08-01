@@ -28,6 +28,9 @@ app.use(express.urlencoded({ extended: true }));
 const path = require("path");
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
 // Auth routes
 app.use("/api/auth", authRoutes);
 // Blog routes
@@ -40,6 +43,11 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString(),
     endpoints: ["POST /api/auth/register", "POST /api/auth/login"],
   });
+});
+
+// Catch-all: send back React's index.html for any non-API route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
 // Health check route
