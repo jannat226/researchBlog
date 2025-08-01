@@ -11,9 +11,13 @@ const blogRoutes = require("./routes/blog");
 const app = express();
 
 // Enhanced CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://researchblogs.onrender.com",
+];
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   })
 );
