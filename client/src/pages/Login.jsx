@@ -116,6 +116,11 @@ const Login = () => {
                 </>
               )}
             </button>
+            <div className="text-center mt-4">
+              <a href="/forgot-password" className="link">
+                Forgot password?
+              </a>
+            </div>
           </form>
 
           <div className="form-footer">
