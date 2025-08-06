@@ -92,6 +92,12 @@ function App() {
               <Route path="/blogs" element={<BlogList />} />
               <Route path="/blogs/:id" element={<BlogDetail />} />
               <Route
+                path="/blogs/:id/edit"
+                element={
+                  user ? <CreateBlog isEdit={true} /> : <Navigate to="/login" />
+                }
+              />
+              <Route
                 path="/create"
                 element={user ? <CreateBlog /> : <Navigate to="/login" />}
               />

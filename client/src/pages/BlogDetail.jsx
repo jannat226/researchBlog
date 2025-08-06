@@ -48,24 +48,22 @@ const BlogDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this blog post? This action cannot be undone."
-      )
-    ) {
-      return;
+    if (window.confirm("Are you sure you want to delete this blog?")) {
+      try {
+        setDeleteLoading(true);
+        await axios.delete(`${api}/api/blogs/${id}`);
+        navigate("/blogs");
+      } catch (err) {
+        setError("Failed to delete blog");
+        console.error("Error deleting blog:", err);
+      } finally {
+        setDeleteLoading(false);
+      }
     }
+  };
 
-    try {
-      setDeleteLoading(true);
-      await axios.delete(`${api}/api/blogs/${id}`);
-      navigate("/blogs");
-    } catch (err) {
-      alert("Failed to delete blog post. Please try again.");
-      console.error("Error deleting blog:", err);
-    } finally {
-      setDeleteLoading(false);
-    }
+  const handleEdit = () => {
+    navigate(`/blogs/${id}/edit`);
   };
 
   const handleShare = async () => {
@@ -155,7 +153,7 @@ const BlogDetail = () => {
 
           {isAuthor && (
             <>
-              <button className="btn btn-secondary">
+              <button onClick={handleEdit} className="btn btn-secondary">
                 <Edit3 size={18} />
                 Edit
               </button>

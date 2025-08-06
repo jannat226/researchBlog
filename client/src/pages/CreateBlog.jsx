@@ -1,6 +1,6 @@
 // client/src/pages/CreateBlog.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../App";
 import axios from "axios";
 
@@ -13,9 +13,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-const CreateBlog = () => {
+const CreateBlog = ({ isEdit = false }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams(); // For edit mode
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -26,6 +27,40 @@ const CreateBlog = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
+
+  // Fetch blog data for editing
+  useEffect(() => {
+    if (isEdit && id) {
+      fetchBlogForEdit();
+    }
+  }, [isEdit, id]);
+
+  const fetchBlogForEdit = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${api}/api/blogs/${id}`);
+      const blog = response.data;
+
+      // Check if user is the author
+      if (blog.author._id !== user.id) {
+        setError("You are not authorized to edit this blog");
+        navigate("/blogs");
+        return;
+      }
+
+      setFormData({
+        title: blog.title,
+        content: blog.content,
+        imageUrl: blog.image || "",
+        imageFile: null,
+      });
+    } catch (err) {
+      setError("Failed to fetch blog for editing");
+      console.error("Error fetching blog:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Cleanup URL.createObjectURL on unmount or file change
   useEffect(() => {
@@ -93,12 +128,15 @@ const CreateBlog = () => {
         };
       }
 
-      const response = await axios.post(`${api}/api/blogs`, dataToSend, config);
-      navigate(`/blogs/${response.data._id}`);
+      const response = isEdit
+        ? await axios.put(`${api}/api/blogs/${id}`, dataToSend, config)
+        : await axios.post(`${api}/api/blogs`, dataToSend, config);
+
+      navigate(`/blogs/${isEdit ? id : response.data._id}`);
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          "Failed to create blog. Please try again."
+          `Failed to ${isEdit ? "update" : "create"} blog. Please try again.`
       );
     } finally {
       setLoading(false);
@@ -146,9 +184,13 @@ const CreateBlog = () => {
               <div className="create-blog-icon">
                 <PenTool size={32} />
               </div>
-              <h1 className="card-title">Create New Blog Post</h1>
+              <h1 className="card-title">
+                {isEdit ? "Edit Blog Post" : "Create New Blog Post"}
+              </h1>
               <p className="card-subtitle">
-                Share your thoughts with the world
+                {isEdit
+                  ? "Update your blog post"
+                  : "Share your thoughts with the world"}
               </p>
             </div>
 
@@ -285,12 +327,12 @@ const CreateBlog = () => {
                   {loading ? (
                     <>
                       <div className="loading-spinner-sm"></div>
-                      Publishing...
+                      {isEdit ? "Updating..." : "Publishing..."}
                     </>
                   ) : (
                     <>
                       <Save size={20} />
-                      Publish Blog
+                      {isEdit ? "Update Blog" : "Publish Blog"}
                     </>
                   )}
                 </button>
