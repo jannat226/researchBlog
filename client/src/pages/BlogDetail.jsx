@@ -475,11 +475,11 @@ const BlogDetail = () => {
         }
 
         .article-title {
-          font-size: 3rem;
-          font-weight: 800;
+          font-size: 2.25rem;
+          font-weight: 700;
           color: #2d3748;
-          line-height: 1.2;
-          margin-bottom: 2rem;
+          line-height: 1.3;
+          margin-bottom: 1.5rem;
         }
 
         .article-meta {
@@ -722,15 +722,16 @@ const BlogDetail = () => {
 
         .author-card {
           display: flex;
-          gap: 1.5rem;
-          padding: 2rem;
-          background: #f7fafc;
-          border-radius: 16px;
+          gap: 1rem;
+          padding: 1.5rem;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
         }
 
         .author-card-avatar {
-          width: 60px;
-          height: 60px;
+          width: 48px;
+          height: 48px;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           border-radius: 50%;
           display: flex;
@@ -742,15 +743,16 @@ const BlogDetail = () => {
 
         .author-card-info h3 {
           color: #2d3748;
-          font-size: 1.25rem;
-          font-weight: 700;
+          font-size: 1rem;
+          font-weight: 600;
           margin-bottom: 0.5rem;
         }
 
         .author-card-info p {
-          color: #718096;
-          line-height: 1.6;
+          color: #64748b;
+          line-height: 1.5;
           margin: 0;
+          font-size: 0.9rem;
         }
 
         .loading-spinner-sm {
@@ -778,7 +780,7 @@ const BlogDetail = () => {
           }
 
           .article-title {
-            font-size: 2.25rem;
+            font-size: 2rem;
           }
 
           .article-meta {
