@@ -24,6 +24,10 @@ const BlogDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [commentContent, setCommentContent] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   useEffect(() => {
     fetchBlog();
@@ -64,6 +68,67 @@ const BlogDetail = () => {
 
   const handleEdit = () => {
     navigate(`/blogs/${id}/edit`);
+  };
+
+  const handleLike = async () => {
+    if (!user) {
+      alert("Please log in to like this post");
+      return;
+    }
+
+    try {
+      setLikeLoading(true);
+      const response = await axios.post(`${api}/api/blogs/${id}/like`);
+      setBlog(response.data);
+    } catch (err) {
+      setError("Failed to update like");
+      console.error("Error toggling like:", err);
+    } finally {
+      setLikeLoading(false);
+    }
+  };
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      alert("Please log in to comment");
+      return;
+    }
+
+    if (!commentContent.trim()) {
+      alert("Please enter a comment");
+      return;
+    }
+
+    try {
+      setCommentLoading(true);
+      const response = await axios.post(`${api}/api/blogs/${id}/comments`, {
+        content: commentContent,
+      });
+      setBlog(response.data);
+      setCommentContent("");
+    } catch (err) {
+      setError("Failed to add comment");
+      console.error("Error adding comment:", err);
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `${api}/api/blogs/${id}/comments/${commentId}`
+      );
+      setBlog(response.data);
+    } catch (err) {
+      setError("Failed to delete comment");
+      console.error("Error deleting comment:", err);
+    }
   };
 
   const handleShare = async () => {
@@ -206,13 +271,33 @@ const BlogDetail = () => {
               </div>
 
               <div className="engagement-stats">
-                <button className="stat-button">
-                  <Heart size={18} />
-                  <span>24</span>
+                <button
+                  className={`stat-button ${
+                    blog.likes?.includes(user?.id) ? "liked" : ""
+                  }`}
+                  onClick={handleLike}
+                  disabled={likeLoading}
+                  title={
+                    user
+                      ? blog.likes?.includes(user.id)
+                        ? "Unlike"
+                        : "Like"
+                      : "Login to like"
+                  }
+                >
+                  <Heart
+                    size={18}
+                    fill={blog.likes?.includes(user?.id) ? "#e53e3e" : "none"}
+                  />
+                  <span>{blog.likes?.length || 0}</span>
                 </button>
-                <button className="stat-button">
+                <button
+                  className="stat-button"
+                  onClick={() => setShowComments(!showComments)}
+                  title="View comments"
+                >
                   <MessageCircle size={18} />
-                  <span>8</span>
+                  <span>{blog.comments?.length || 0}</span>
                 </button>
               </div>
             </div>
@@ -242,6 +327,82 @@ const BlogDetail = () => {
           </footer>
         </div>
       </article>
+
+      {/* Comments Section */}
+      {showComments && (
+        <div className="comments-section">
+          <div className="comments-header">
+            <h3>Comments ({blog.comments?.length || 0})</h3>
+          </div>
+
+          {/* Add Comment Form */}
+          {user ? (
+            <form onSubmit={handleAddComment} className="comment-form">
+              <div className="comment-input-group">
+                <textarea
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  placeholder="Write a comment..."
+                  rows="3"
+                  className="comment-input"
+                />
+                <button
+                  type="submit"
+                  disabled={commentLoading || !commentContent.trim()}
+                  className="btn btn-primary comment-submit"
+                >
+                  {commentLoading ? "Posting..." : "Post Comment"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="login-prompt">
+              <p>Please log in to leave a comment.</p>
+            </div>
+          )}
+
+          {/* Comments List */}
+          <div className="comments-list">
+            {blog.comments && blog.comments.length > 0 ? (
+              blog.comments.map((comment) => (
+                <div key={comment._id} className="comment-item">
+                  <div className="comment-header">
+                    <div className="comment-author">
+                      <div className="comment-avatar">
+                        <User size={16} />
+                      </div>
+                      <span className="comment-username">
+                        {comment.author.username}
+                      </span>
+                    </div>
+                    <div className="comment-actions">
+                      <span className="comment-date">
+                        {formatDate(comment.createdAt)}
+                      </span>
+                      {user &&
+                        (user.id === comment.author._id ||
+                          user.id === blog.author._id) && (
+                          <button
+                            onClick={() => handleDeleteComment(comment._id)}
+                            className="btn btn-ghost comment-delete"
+                            title="Delete comment"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                    </div>
+                  </div>
+                  <div className="comment-content">{comment.content}</div>
+                </div>
+              ))
+            ) : (
+              <div className="no-comments">
+                <p>No comments yet. Be the first to comment!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .blog-detail-container {
@@ -389,6 +550,152 @@ const BlogDetail = () => {
         .stat-button:hover {
           color: #667eea;
           background: rgba(102, 126, 234, 0.1);
+        }
+
+        .stat-button.liked {
+          color: #e53e3e;
+        }
+
+        .stat-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        /* Comments Section Styles */
+        .comments-section {
+          background: white;
+          border-radius: 20px;
+          padding: 2rem;
+          margin-top: 2rem;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .comments-header h3 {
+          color: #2d3748;
+          margin-bottom: 1.5rem;
+          font-size: 1.25rem;
+          font-weight: 600;
+        }
+
+        .comment-form {
+          margin-bottom: 2rem;
+          padding-bottom: 2rem;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comment-input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .comment-input {
+          width: 100%;
+          padding: 1rem;
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          font-size: 1rem;
+          resize: vertical;
+          min-height: 80px;
+          font-family: inherit;
+          transition: border-color 0.2s ease;
+        }
+
+        .comment-input:focus {
+          outline: none;
+          border-color: #667eea;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .comment-submit {
+          align-self: flex-end;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.9rem;
+        }
+
+        .login-prompt {
+          padding: 1.5rem;
+          background: #f7fafc;
+          border-radius: 12px;
+          text-align: center;
+          color: #718096;
+          margin-bottom: 2rem;
+        }
+
+        .comments-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .comment-item {
+          padding: 1.5rem;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          background: #f7fafc;
+        }
+
+        .comment-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.75rem;
+        }
+
+        .comment-author {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .comment-avatar {
+          width: 32px;
+          height: 32px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
+
+        .comment-username {
+          font-weight: 600;
+          color: #2d3748;
+          font-size: 0.9rem;
+        }
+
+        .comment-actions {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .comment-date {
+          font-size: 0.8rem;
+          color: #718096;
+        }
+
+        .comment-delete {
+          padding: 0.25rem;
+          color: #e53e3e;
+        }
+
+        .comment-delete:hover {
+          background: #fed7d7;
+        }
+
+        .comment-content {
+          color: #2d3748;
+          line-height: 1.6;
+          font-size: 0.95rem;
+        }
+
+        .no-comments {
+          text-align: center;
+          padding: 2rem;
+          color: #718096;
+          font-style: italic;
         }
 
         .article-body {
