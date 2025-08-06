@@ -11,7 +11,7 @@ router.get("/:id", blogController.getBlogById);
 
 // Protected routes
 router.post("/", auth, upload.single("image"), blogController.createBlog);
-router.put("/:id", auth, blogController.updateBlog);
+router.put("/:id", auth, upload.single("image"), blogController.updateBlog);
 router.delete("/:id", auth, blogController.deleteBlog);
 
 module.exports = router;

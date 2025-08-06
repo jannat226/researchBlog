@@ -54,10 +54,19 @@ exports.updateBlog = async (req, res) => {
     if (blog.author.toString() !== req.user.id) {
       return res.status(403).json({ message: "Unauthorized" });
     }
-    const { title, content, image } = req.body;
+
+    const { title, content } = req.body;
+    let image = blog.image; // Keep existing image by default
+
+    if (req.file) {
+      image = `/uploads/${req.file.filename}`;
+    } else if (req.body.image) {
+      image = req.body.image;
+    }
+
     blog.title = title || blog.title;
     blog.content = content || blog.content;
-    blog.image = image || blog.image;
+    blog.image = image;
     blog.updatedAt = Date.now();
     await blog.save();
     res.json(blog);
@@ -74,7 +83,7 @@ exports.deleteBlog = async (req, res) => {
     if (blog.author.toString() !== req.user.id) {
       return res.status(403).json({ message: "Unauthorized" });
     }
-    await blog.remove();
+    await Blog.findByIdAndDelete(req.params.id);
     res.json({ message: "Blog deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
